@@ -26,3 +26,13 @@
 *.exe
 *.out
 *.app
+
+# Mix
+*.mix
+.*.swp
+
+# assembly (yasm)
+*.lst
+*.o
+*.exe
+*.s
