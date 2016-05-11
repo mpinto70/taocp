@@ -103,7 +103,7 @@ segment     .text
 
     push    rbp                     ; prepare stack frame
     mov     rbp, rsp
-    sub     rsp, 32                 ; making room for pointer and size
+    sub     rsp, 32                 ; making room for pointer line and column
 
     mov     [rsp + .primes], rdi    ; saving pointer to primes
     mov     rcx, 0                  ; rcx will point to current prime to print
