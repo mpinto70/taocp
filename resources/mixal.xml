@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE MODE SYSTEM "xmode.dtd">
+
+<!--
+    MIX Assembly mode by Marcelo Pinto (mpinto70 at gmail)
+
+    - For MIXAL language from The Art of Computer Programming by Knuth
+    - Comments at end of line are not properly formated
+-->
+
+<MODE>
+
+    <PROPS>
+        <PROPERTY NAME="contextInsensitive" VALUE="true"/>
+        <PROPERTY NAME="wordBreakChars" VALUE=",+-=&lt;&gt;/?^&amp;*" />
+    </PROPS>
+
+    <RULES
+        HIGHLIGHT_DIGITS="TRUE"
+        IGNORE_CASE="FALSE"
+        DIGIT_RE="(0x)?[\p{Digit}A-F_]+[HD]?">
+
+        <EOL_SPAN TYPE="COMMENT1" AT_LINE_START="TRUE">*</EOL_SPAN>
+
+        <SPAN
+            TYPE="LITERAL1"
+            NO_LINE_BREAK="TRUE">
+            <BEGIN>"</BEGIN>
+            <END>"</END>
+        </SPAN>
+
+        <SEQ TYPE="OPERATOR">+</SEQ>
+        <SEQ TYPE="OPERATOR">-</SEQ>
+        <SEQ TYPE="OPERATOR">/</SEQ>
+        <SEQ TYPE="OPERATOR">//</SEQ>
+        <SEQ TYPE="OPERATOR">*</SEQ>
+        <SEQ TYPE="OPERATOR">,</SEQ>
+
+        <KEYWORDS>
+            <!-- Key word 1 - DIRECTIVES -->
+            <!-- Key word 2 - MNEMONICS -->
+            <!-- Key word 2 - JUMPS -->
+            <!-- Key word 4 - Special symbols -->
+            <KEYWORD1>ALF</KEYWORD1>
+            <KEYWORD1>CON</KEYWORD1>
+            <KEYWORD1>END</KEYWORD1>
+            <KEYWORD1>EQU</KEYWORD1>
+            <KEYWORD1>ORIG</KEYWORD1>
+
+            <KEYWORD2>LDA</KEYWORD2>
+            <KEYWORD2>LDX</KEYWORD2>
+            <KEYWORD2>LD1</KEYWORD2>
+            <KEYWORD2>LD2</KEYWORD2>
+            <KEYWORD2>LD3</KEYWORD2>
+            <KEYWORD2>LD4</KEYWORD2>
+            <KEYWORD2>LD5</KEYWORD2>
+            <KEYWORD2>LD6</KEYWORD2>
+            <KEYWORD2>LDAN</KEYWORD2>
+            <KEYWORD2>LDXN</KEYWORD2>
+            <KEYWORD2>LD1N</KEYWORD2>
+            <KEYWORD2>LD2N</KEYWORD2>
+            <KEYWORD2>LD3N</KEYWORD2>
+            <KEYWORD2>LD4N</KEYWORD2>
+            <KEYWORD2>LD5N</KEYWORD2>
+            <KEYWORD2>LD6N</KEYWORD2>
+            <KEYWORD2>STA</KEYWORD2>
+            <KEYWORD2>STX</KEYWORD2>
+            <KEYWORD2>ST1</KEYWORD2>
+            <KEYWORD2>ST2</KEYWORD2>
+            <KEYWORD2>ST3</KEYWORD2>
+            <KEYWORD2>ST4</KEYWORD2>
+            <KEYWORD2>ST5</KEYWORD2>
+            <KEYWORD2>ST6</KEYWORD2>
+            <KEYWORD2>STJ</KEYWORD2>
+            <KEYWORD2>STZ</KEYWORD2>
+            <KEYWORD2>ADD</KEYWORD2>
+            <KEYWORD2>SUB</KEYWORD2>
+            <KEYWORD2>MUL</KEYWORD2>
+            <KEYWORD2>DIV</KEYWORD2>
+            <KEYWORD2>ENTA</KEYWORD2>
+            <KEYWORD2>ENTX</KEYWORD2>
+            <KEYWORD2>ENT1</KEYWORD2>
+            <KEYWORD2>ENT2</KEYWORD2>
+            <KEYWORD2>ENT3</KEYWORD2>
+            <KEYWORD2>ENT4</KEYWORD2>
+            <KEYWORD2>ENT5</KEYWORD2>
+            <KEYWORD2>ENT6</KEYWORD2>
+            <KEYWORD2>ENNA</KEYWORD2>
+            <KEYWORD2>ENNX</KEYWORD2>
+            <KEYWORD2>ENN1</KEYWORD2>
+            <KEYWORD2>ENN2</KEYWORD2>
+            <KEYWORD2>ENN3</KEYWORD2>
+            <KEYWORD2>ENN4</KEYWORD2>
+            <KEYWORD2>ENN5</KEYWORD2>
+            <KEYWORD2>ENN6</KEYWORD2>
+            <KEYWORD2>INCA</KEYWORD2>
+            <KEYWORD2>INCX</KEYWORD2>
+            <KEYWORD2>INC1</KEYWORD2>
+            <KEYWORD2>INC2</KEYWORD2>
+            <KEYWORD2>INC3</KEYWORD2>
+            <KEYWORD2>INC4</KEYWORD2>
+            <KEYWORD2>INC5</KEYWORD2>
+            <KEYWORD2>INC6</KEYWORD2>
+            <KEYWORD2>DECA</KEYWORD2>
+            <KEYWORD2>DECX</KEYWORD2>
+            <KEYWORD2>DEC1</KEYWORD2>
+            <KEYWORD2>DEC2</KEYWORD2>
+            <KEYWORD2>DEC3</KEYWORD2>
+            <KEYWORD2>DEC4</KEYWORD2>
+            <KEYWORD2>DEC5</KEYWORD2>
+            <KEYWORD2>DEC6</KEYWORD2>
+            <KEYWORD2>CMPA</KEYWORD2>
+            <KEYWORD2>CMPX</KEYWORD2>
+            <KEYWORD2>CMP1</KEYWORD2>
+            <KEYWORD2>CMP2</KEYWORD2>
+            <KEYWORD2>CMP3</KEYWORD2>
+            <KEYWORD2>CMP4</KEYWORD2>
+            <KEYWORD2>CMP5</KEYWORD2>
+            <KEYWORD2>CMP6</KEYWORD2>
+            <KEYWORD2>MOVE</KEYWORD2>
+            <KEYWORD2>SLA</KEYWORD2>
+            <KEYWORD2>SRA</KEYWORD2>
+            <KEYWORD2>SLAX</KEYWORD2>
+            <KEYWORD2>SRAX</KEYWORD2>
+            <KEYWORD2>SLC</KEYWORD2>
+            <KEYWORD2>SRC</KEYWORD2>
+
+            <KEYWORD3>JMP</KEYWORD3>
+            <KEYWORD3>JSJ</KEYWORD3>
+            <KEYWORD3>JOV</KEYWORD3>
+            <KEYWORD3>JNOV</KEYWORD3>
+            <KEYWORD3>JL</KEYWORD3>
+            <KEYWORD3>JE</KEYWORD3>
+            <KEYWORD3>JG</KEYWORD3>
+            <KEYWORD3>JGE</KEYWORD3>
+            <KEYWORD3>JNE</KEYWORD3>
+            <KEYWORD3>JLE</KEYWORD3>
+            <KEYWORD3>ADDR</KEYWORD3>
+            <KEYWORD3>JAN</KEYWORD3>
+            <KEYWORD3>JAZ</KEYWORD3>
+            <KEYWORD3>JAP</KEYWORD3>
+            <KEYWORD3>JANN</KEYWORD3>
+            <KEYWORD3>JANZ</KEYWORD3>
+            <KEYWORD3>JANP</KEYWORD3>
+            <KEYWORD3>JXN</KEYWORD3>
+            <KEYWORD3>JXZ</KEYWORD3>
+            <KEYWORD3>JXP</KEYWORD3>
+            <KEYWORD3>JXNN</KEYWORD3>
+            <KEYWORD3>JXNZ</KEYWORD3>
+            <KEYWORD3>JXNP</KEYWORD3>
+            <KEYWORD3>J1N</KEYWORD3>
+            <KEYWORD3>J2N</KEYWORD3>
+            <KEYWORD3>J3N</KEYWORD3>
+            <KEYWORD3>J4N</KEYWORD3>
+            <KEYWORD3>J5N</KEYWORD3>
+            <KEYWORD3>J6N</KEYWORD3>
+            <KEYWORD3>J1Z</KEYWORD3>
+            <KEYWORD3>J2Z</KEYWORD3>
+            <KEYWORD3>J3Z</KEYWORD3>
+            <KEYWORD3>J4Z</KEYWORD3>
+            <KEYWORD3>J5Z</KEYWORD3>
+            <KEYWORD3>J6Z</KEYWORD3>
+            <KEYWORD3>J1P</KEYWORD3>
+            <KEYWORD3>J2P</KEYWORD3>
+            <KEYWORD3>J3P</KEYWORD3>
+            <KEYWORD3>J4P</KEYWORD3>
+            <KEYWORD3>J5P</KEYWORD3>
+            <KEYWORD3>J6P</KEYWORD3>
+            <KEYWORD3>J1NN</KEYWORD3>
+            <KEYWORD3>J2NN</KEYWORD3>
+            <KEYWORD3>J3NN</KEYWORD3>
+            <KEYWORD3>J4NN</KEYWORD3>
+            <KEYWORD3>J5NN</KEYWORD3>
+            <KEYWORD3>J6NN</KEYWORD3>
+            <KEYWORD3>J1NZ</KEYWORD3>
+            <KEYWORD3>J2NZ</KEYWORD3>
+            <KEYWORD3>J3NZ</KEYWORD3>
+            <KEYWORD3>J4NZ</KEYWORD3>
+            <KEYWORD3>J5NZ</KEYWORD3>
+            <KEYWORD3>J6NZ</KEYWORD3>
+            <KEYWORD3>J1NP</KEYWORD3>
+            <KEYWORD3>J2NP</KEYWORD3>
+            <KEYWORD3>J3NP</KEYWORD3>
+            <KEYWORD3>J4NP</KEYWORD3>
+            <KEYWORD3>J5NP</KEYWORD3>
+            <KEYWORD3>J6NP</KEYWORD3>
+
+            <!-- special functions -->
+            <FUNCTION>NOP</FUNCTION>
+            <FUNCTION>HLT</FUNCTION>
+            <FUNCTION>IN</FUNCTION>
+            <FUNCTION>OUT</FUNCTION>
+            <FUNCTION>IOC</FUNCTION>
+            <FUNCTION>JRED</FUNCTION>
+            <FUNCTION>JBUS</FUNCTION>
+            <FUNCTION>NUM</FUNCTION>
+            <FUNCTION>CHAR</FUNCTION>
+
+        </KEYWORDS>
+
+        <SPAN_REGEXP
+            TYPE="LABEL"
+            AT_WHITESPACE_END="TRUE"
+            AT_LINE_START="TRUE">
+            <BEGIN>^[A-Z]</BEGIN>
+            <END> </END>
+        </SPAN_REGEXP>
+        <SPAN_REGEXP
+            TYPE="KEYWORD4">
+            <BEGIN>\b[1-6][HBF]\b</BEGIN>
+            <END> </END>
+        </SPAN_REGEXP>
+    </RULES>
+</MODE>
