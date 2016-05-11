@@ -2,7 +2,9 @@
 ; calculate 500 first primes and print vertically in 10 columns
 
 segment     .bss
-    primes  resq    500     ; 500 primes
+    NUMBER      equ     500
+    MAX_COLUMN  equ     10
+    primes  resq    NUMBER  ; 500 primes
     number  resq    1       ; the number of primes
 
 segment     .text
@@ -41,7 +43,7 @@ main:
     mov     [primes + rax * 8], rdi ; save prime in array
     inc     rax                     ; increase number of known primes
     mov     [number], rax           ; save number of known primes
-    cmp     rax, 500
+    cmp     rax, NUMBER
     jl      .loop_prime
 
     ; now print
@@ -125,7 +127,7 @@ segment     .text
     mov     rsi, [rsp + .column]
     inc     rsi                     ; next column
     mov     [rsp + .column], rsi    ; save next column
-    cmp     rsi, 10
+    cmp     rsi, MAX_COLUMN
     jne     .print_next
 
     lea     rdi, [.newline]
@@ -137,7 +139,7 @@ segment     .text
     mov     rdi, [rsp + .line]
     inc     rdi                     ; next line
     mov     [rsp + .line], rdi      ; save next line
-    cmp     rdi, 50                 ; verify end
+    cmp     rdi, NUMBER / MAX_COLUMN        ; verify end
     jl      .print_next
 
     xor     eax, eax
@@ -150,7 +152,7 @@ calculate_index: ; line, column
 
     mov     rcx, rdi
     mov     rax, rsi
-    imul    rax, 50
+    imul    rax, NUMBER / MAX_COLUMN
     add     rax, rcx
 
     leave
