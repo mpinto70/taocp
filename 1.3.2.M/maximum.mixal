@@ -1,0 +1,25 @@
+X       EQU     1000
+        ORIG    3000
+MAXIMUM STJ     EXIT            ; 1     Subroutine linkage
+INIT    ENT3    0,1             ; 1     _M1. Initialize._ K <-- n
+        JMP     CHANGEM         ; 1     j <-- n, m <-- X[n], k <-- n-1
+LOOP    CMPA    X,3             ; n-1   _M3. Compare_
+        JGE     *+3             ; n-1   To M5 if m >= X[k]
+CHANGEM ENT2    0,3             ; A+1   _M4. Change m._ j <-- k
+        LDA     X,3             ; A+1   m <-- X[k]
+        DEC3    1               ; n     _M5. Decrease k._
+        J3P     LOOP            ; n     _M2. All tested?_ To M3 if k > 0
+EXIT    JMP     *               ; 1     Return to main program.
+
+START   IN      X+1(0)
+        JBUS    *(0)
+        ENT1    100
+1H      JMP     MAXIMUM
+        LDX     X,1
+        STA     X,1
+        STX     X,2
+        DEC1    1
+        J1P     1B
+        OUT     X+1(1)
+        HLT
+        END     START

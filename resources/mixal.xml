@@ -12,6 +12,7 @@
 <MODE>
 
     <PROPS>
+        <PROPERTY NAME="lineComment" VALUE=";" />
         <PROPERTY NAME="contextInsensitive" VALUE="true"/>
         <PROPERTY NAME="wordBreakChars" VALUE=",+-=&lt;&gt;/?^&amp;*" />
     </PROPS>
@@ -22,7 +23,7 @@
         DIGIT_RE="(0x)?[\p{Digit}A-F_]+[HD]?">
 
         <EOL_SPAN TYPE="COMMENT1" AT_LINE_START="TRUE">*</EOL_SPAN>
-
+        <EOL_SPAN TYPE="COMMENT1" AT_LINE_START="FALSE">;</EOL_SPAN>
         <SPAN
             TYPE="LITERAL1"
             NO_LINE_BREAK="TRUE">

@@ -1,0 +1,17 @@
+
+
+L       EQU     100
+DEVICE  EQU     0
+BUF0    EQU     2000
+        ORIG    3000
+START   IOC     0(DEVICE)
+        LDA     =-1000000000=
+        LD2     =100=
+LOOP    INCA    20000000
+        DEC2    1
+        STA     BUF0,2
+        J2Z     2F
+        JMP     LOOP
+2H      OUT     BUF0(DEVICE)
+        HLT
+        END     START
