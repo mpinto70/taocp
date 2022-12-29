@@ -1,11 +1,11 @@
 #pragma once
 
-#include <cstddef>
+#include <cstdint>
 #include <limits>
 
 namespace memory {
 
-using size_type = std::size_t;
+using size_type = uint32_t;
 constexpr size_type BUFFER_SIZE = 300;
 constexpr size_type NO_LINK = std::numeric_limits<size_type>::max();
 

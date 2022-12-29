@@ -6,9 +6,7 @@
 
 namespace memory {
 
-namespace {
 std::array<std::byte, BUFFER_SIZE> Memory;
-}
 
 const Segment AVAIL{ 0, 0 };
 
@@ -31,7 +29,7 @@ void* allocate(size_type size) {
     while (q != NO_LINK) {
         auto seg_q = segment_at(q);
         if (seg_q->size >= effective_size) {
-            auto seg_w = segment_at(q - effective_size);
+            auto seg_w = segment_at(q + seg_q->size + sizeof(Segment) - effective_size);
             seg_w->size = effective_size;
             seg_w->link = NO_LINK;
             seg_q->size -= effective_size;
