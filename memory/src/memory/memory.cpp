@@ -10,16 +10,37 @@ namespace {
 std::array<std::byte, BUFFER_SIZE> Memory;
 }
 
-const Segment AVAIL{ 0, 0, reinterpret_cast<Segment*>(&Memory[0]) };
+const Segment AVAIL{ 0, 0 };
 
 void init() {
     std::fill(Memory.begin(), Memory.end(), std::byte{ 0x00 });
-    auto head = AVAIL.link;
-    head->location = 0;
+    auto head = segment_at(AVAIL.link);
     head->size = Memory.size() - sizeof(Segment);
-    head->link = nullptr;
+    head->link = NO_LINK;
 }
 
 void deinit() {}
+
+Segment* segment_at(size_t idx) {
+    return reinterpret_cast<Segment*>(&Memory[idx]);
+}
+
+void* allocate(std::size_t size) {
+    const std::size_t effective_size = size + sizeof(Segment);
+    std::size_t q = 0;
+    while (q != NO_LINK) {
+        auto seg_q = segment_at(q);
+        if (seg_q->size >= effective_size) {
+            auto seg_w = segment_at(q - effective_size);
+            seg_w->size = effective_size;
+            seg_w->link = NO_LINK;
+            seg_q->size -= effective_size;
+            return (&seg_w[1]);
+        }
+        q = seg_q->link;
+    }
+
+    return nullptr;
+}
 
 }  // namespace memory
