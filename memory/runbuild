@@ -1,0 +1,70 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
+_check() {
+    if [[ $? -ne 0 ]]; then
+        echo "Error processing: $1"
+        exit 1
+    fi
+}
+
+_do_build() {
+    if [[ ! -d "build" ]]; then
+        mkdir ${SCRIPT_DIR}/build
+    fi
+    cd ${SCRIPT_DIR}/build || _check "cd to build"
+    echo "Building ..."
+    cmake ..
+    _check "cmake"
+    make -j8
+    _check "make"
+    cd - || _check "cd back"
+}
+
+_clean() {
+    cd ${SCRIPT_DIR} || _check "cd to root"
+    rm -rf \
+        build \
+        external \
+
+    cd - || _check "cd back"
+}
+
+_demo() {
+    echo "Put your demo here"
+    ${SCRIPT_DIR}/bin/exe
+}
+
+if [[ "$#" = "0" ]]; then
+    # With no parameter: build
+    _do_build
+elif [[ "$1" = "clean" ]]; then
+    _clean
+    echo "Done."
+elif [[ "$1" = "test" ]]; then
+    _do_build
+    shift
+    echo "Testing... "
+    for test in "${SCRIPT_DIR}"/build/test/bin/*
+    do
+        $test "$@"
+        _check "$test"
+    done
+elif [[ "$1" = "ctest" ]]; then
+    shift
+    _do_build
+    cd ${SCRIPT_DIR}/build || _check "cd to build"
+    ctest "$@"
+    _check "ctest"
+    cd - || _check "cd back"
+elif [[ "$1" = "demo" ]]; then
+    _do_build
+    _demo
+elif [[ "$1" = "check" ]]; then
+    _do_build
+    cd ${SCRIPT_DIR}/build || _check "cd to build"
+    make cppcheck
+else
+    echo "Usage: `basename $0` [test|ctest|clean|demo|check]"
+fi
