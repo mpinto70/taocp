@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-
 namespace memory {
 
 constexpr int BUFFER_SIZE = 300;
@@ -13,8 +11,6 @@ struct Segment {
 };
 
 extern const Segment AVAIL;
-
-extern std::array<char, BUFFER_SIZE> Memory;
 
 void init();
 void deinit();
