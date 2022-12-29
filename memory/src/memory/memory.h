@@ -19,8 +19,9 @@ extern const Segment AVAIL;
 void init();
 void deinit();
 
-Segment* segment_at(size_type idx);
+Segment segment_at(size_type idx);
 
 void* allocate(size_type size);
+void* allocate_filled(size_type size, unsigned char c);
 
 }  // namespace memory
