@@ -1,15 +1,17 @@
 #pragma once
 
 #include <cstddef>
+#include <limits>
 
 namespace memory {
 
-constexpr int BUFFER_SIZE = 300;
-constexpr std::size_t NO_LINK = std::size_t(-1);
+using size_type = std::size_t;
+constexpr size_type BUFFER_SIZE = 300;
+constexpr size_type NO_LINK = std::numeric_limits<size_type>::max();
 
 struct Segment {
-    std::size_t size = 0;
-    std::size_t link = NO_LINK;
+    size_type size = 0;
+    size_type link = NO_LINK;
 };
 
 extern const Segment AVAIL;
@@ -17,8 +19,8 @@ extern const Segment AVAIL;
 void init();
 void deinit();
 
-Segment* segment_at(std::size_t idx);
+Segment* segment_at(size_type idx);
 
-void* allocate(std::size_t size);
+void* allocate(size_type size);
 
 }  // namespace memory

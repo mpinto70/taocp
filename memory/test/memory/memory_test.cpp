@@ -10,6 +10,8 @@ public:
     ~MemoryTest() override { deinit(); }
 };
 
+void print_memory() {}
+
 TEST_F(MemoryTest, SegmentConstruction) {
     constexpr Segment seg;
 

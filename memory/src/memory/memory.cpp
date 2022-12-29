@@ -21,13 +21,13 @@ void init() {
 
 void deinit() {}
 
-Segment* segment_at(size_t idx) {
+Segment* segment_at(size_type idx) {
     return reinterpret_cast<Segment*>(&Memory[idx]);
 }
 
-void* allocate(std::size_t size) {
-    const std::size_t effective_size = size + sizeof(Segment);
-    std::size_t q = 0;
+void* allocate(size_type size) {
+    const size_type effective_size = size + sizeof(Segment);
+    size_type q = 0;
     while (q != NO_LINK) {
         auto seg_q = segment_at(q);
         if (seg_q->size >= effective_size) {
