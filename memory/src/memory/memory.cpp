@@ -7,23 +7,19 @@
 namespace memory {
 
 std::vector<std::byte> Memory;
-std::vector<Segment> FreeSegments;
-std::vector<Segment> UsedSegments;
+Segments FreeSegments;
+Segments UsedSegments;
 
 bool before(const Segment& segment, size_type location) {
     return segment.location < location;
 }
 
-auto emplace_segment(
-        std::vector<Segment>& segments,
-        size_type location,
-        size_type size,
-        size_type link) {
+auto emplace_segment(Segments& segments, size_type location, size_type size, size_type link) {
     const auto pos = std::lower_bound(segments.begin(), segments.end(), location, before);
     return segments.emplace(pos, location, size, link);
 }
 
-auto find_last_smaller(std::vector<Segment>& segments, size_type location) {
+auto find_last_smaller(Segments& segments, size_type location) {
     const auto pos = std::lower_bound(segments.begin(), segments.end(), location, before);
     if (pos == segments.begin()) {
         return segments.begin();
@@ -63,7 +59,7 @@ void* allocate(size_type size) {
 }
 
 template <typename IT>
-void coalesce_if_together(std::vector<Segment>& segments, IT before, IT after) {
+void coalesce_if_together(Segments& segments, IT before, IT after) {
     if (before->location + before->size == after->location) {
         before->size += after->size;
         before->link = after->link;

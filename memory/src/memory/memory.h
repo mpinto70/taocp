@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <vector>
 
 namespace memory {
 
@@ -14,6 +15,7 @@ struct Segment {
     size_type link = NO_LINK;
 };
 
+using Segments = std::vector<Segment>;
 void init(size_type memory_size);
 void deinit();
 
