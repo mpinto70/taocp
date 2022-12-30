@@ -8,24 +8,19 @@
 namespace memory {
 
 std::array<std::byte, BUFFER_SIZE> Memory;
-
-namespace {
-void put_segment(size_type idx, const Segment& segment) {
-    std::memcpy(&Memory[idx], &segment, sizeof(segment));
-}
-}  // namespace
-
-const Segment AVAIL{ 0, 0 };
+std::vector<Segment> FreeSegments;
+std::vector<Segment> UsedSegments;
 
 void init() {
     std::fill(Memory.begin(), Memory.end(), std::byte{ '-' });
-    auto head = segment_at(AVAIL.link);
-    head.size = Memory.size() - sizeof(Segment);
-    head.link = NO_LINK;
-    put_segment(AVAIL.link, head);
+    FreeSegments = std::vector{ Segment{ 0, BUFFER_SIZE, NO_LINK } };
+    UsedSegments.clear();
 }
 
-void deinit() {}
+void deinit() {
+    FreeSegments.clear();
+    UsedSegments.clear();
+}
 
 Segment segment_at(size_type idx) {
     Segment res;
@@ -34,23 +29,13 @@ Segment segment_at(size_type idx) {
 }
 
 void* allocate(size_type size) {
-    const size_type effective_size = size + sizeof(Segment);
-    size_type q = 0;
-    while (q != NO_LINK) {
-        auto seg_q = segment_at(q);
-        if (seg_q.size >= effective_size) {
-            size_type new_seg_idx = q + seg_q.size + sizeof(Segment) - effective_size;
-            auto new_seg = segment_at(new_seg_idx);
-            new_seg.size = size;
-            new_seg.link = NO_LINK;
-            seg_q.size -= effective_size;
-
-            put_segment(q, seg_q);
-            put_segment(new_seg_idx, new_seg);
-
-            return (&Memory[new_seg_idx + sizeof(Segment)]);
+    for (auto& seg_q : FreeSegments) {
+        if (seg_q.size >= size) {
+            size_type new_seg_idx = seg_q.location + seg_q.size - size;
+            UsedSegments.emplace(UsedSegments.begin(), new_seg_idx, size, NO_LINK);
+            seg_q.size -= size;
+            return (&Memory[new_seg_idx]);
         }
-        q = seg_q.link;
     }
 
     return nullptr;

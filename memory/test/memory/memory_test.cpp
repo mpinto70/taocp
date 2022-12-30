@@ -8,9 +8,11 @@
 namespace memory {
 
 extern std::array<std::byte, BUFFER_SIZE> Memory;
+extern std::vector<Segment> FreeSegments;
+extern std::vector<Segment> UsedSegments;
 
-void print_segment(size_type q, const Segment& segment) {
-    printf("%d / %d / ", q, segment.size);
+void print_segment(const Segment& segment) {
+    printf("%d / %d / ", segment.location, segment.size);
     if (segment.link != NO_LINK) {
         printf("%d", segment.link);
     } else {
@@ -18,7 +20,7 @@ void print_segment(size_type q, const Segment& segment) {
     }
     printf(" [ ");
     for (size_type i = 0; i < segment.size; ++i) {
-        size_type idx = q + sizeof(Segment) + i;
+        size_type idx = segment.location + i;
         const auto c = std::to_integer<unsigned char>(Memory[idx]);
         if (std::isprint(c)) {
             printf("%c", c);
@@ -30,11 +32,28 @@ void print_segment(size_type q, const Segment& segment) {
 }
 
 void print_memory() {
-    size_type q = 0;
-    while (q < BUFFER_SIZE) {
-        const auto seg = segment_at(q);
-        print_segment(q, seg);
-        q += sizeof(Segment) + seg.size;
+    size_type free_idx = 0;
+    size_type used_idx = 0;
+    while (free_idx < FreeSegments.size() || used_idx < UsedSegments.size()) {
+        const Segment* free_seg =
+                free_idx < FreeSegments.size() ? &FreeSegments.at(free_idx) : nullptr;
+        const Segment* used_seg =
+                used_idx < UsedSegments.size() ? &UsedSegments.at(used_idx) : nullptr;
+        if (free_seg != nullptr && used_seg != nullptr) {
+            if (free_seg->location <= used_seg->location) {
+                print_segment(*free_seg);
+                ++free_idx;
+            } else {
+                print_segment(*used_seg);
+                ++used_idx;
+            }
+        } else if (free_seg != nullptr) {
+            print_segment(*free_seg);
+            ++free_idx;
+        } else {
+            print_segment(*used_seg);
+            ++used_idx;
+        }
     }
 }
 
@@ -52,29 +71,27 @@ TEST_F(MemoryTest, SegmentConstruction) {
 }
 
 TEST_F(MemoryTest, InitState) {
-    EXPECT_EQ(AVAIL.size, 0);
-    EXPECT_EQ(AVAIL.link, 0);
-
-    auto head = segment_at(AVAIL.link);
-    EXPECT_EQ(head.size, BUFFER_SIZE - sizeof(Segment));
-    EXPECT_EQ(head.link, NO_LINK);
+    ASSERT_EQ(FreeSegments.size(), 1);
+    const auto& segment = FreeSegments[0];
+    EXPECT_EQ(segment.location, 0);
+    EXPECT_EQ(segment.size, BUFFER_SIZE);
+    EXPECT_EQ(segment.link, NO_LINK);
 }
 
 TEST_F(MemoryTest, Allocate) {
-    constexpr size_type size = 30;
+    print_memory();
+    constexpr size_type size = 31;
     size_type allocated = 0;
     while (true) {
         auto ptr = reinterpret_cast<unsigned char*>(allocate(size));
         if (ptr == nullptr) {
             break;
         }
-        allocated += sizeof(Segment) + size;
-        auto head = segment_at(AVAIL.link);
-        EXPECT_EQ(head.size, BUFFER_SIZE - sizeof(Segment) - allocated);
-        EXPECT_EQ(head.link, NO_LINK);
+        allocated += size;
     }
 
     EXPECT_NE(allocated, 0);
+    print_memory();
 }
 
 }  // namespace memory
