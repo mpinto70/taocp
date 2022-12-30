@@ -8,7 +8,7 @@
 
 namespace memory {
 
-extern std::array<std::byte, BUFFER_SIZE> Memory;
+extern std::vector<std::byte> Memory;
 extern std::vector<Segment> FreeSegments;
 extern std::vector<Segment> UsedSegments;
 
@@ -99,7 +99,6 @@ void print_segments(const std::string& name) {
 
 class MemoryTest : public ::testing::Test {
 public:
-    MemoryTest() { init(); }
     ~MemoryTest() override { deinit(); }
 };
 
@@ -111,12 +110,27 @@ TEST_F(MemoryTest, SegmentConstruction) {
     EXPECT_EQ(seg.link, NO_LINK);
 }
 
-TEST_F(MemoryTest, InitState) {
-    ASSERT_EQ(FreeSegments.size(), 1);
+void CheckInit(size_type memory_size) {
+    // put garbage
+    FreeSegments.resize(30, Segment{});
+    UsedSegments.resize(35, Segment{});
+    Memory.resize(50, std::byte{ 'c' });
+
+    // test init state
+    SCOPED_TRACE("For memory size = " + std::to_string(memory_size));
+    init(memory_size);
+    EXPECT_EQ(FreeSegments.size(), 1);
     const auto& segment = FreeSegments.at(0);
     EXPECT_EQ(segment.location, 0);
-    EXPECT_EQ(segment.size, BUFFER_SIZE);
+    EXPECT_EQ(segment.size, memory_size);
     EXPECT_EQ(segment.link, NO_LINK);
+    EXPECT_EQ(Memory.size(), memory_size);
+    EXPECT_TRUE(UsedSegments.empty());
+}
+
+TEST_F(MemoryTest, InitState) {
+    CheckInit(457);
+    CheckInit(300'000);
 }
 
 void CheckAllocate(
@@ -127,16 +141,18 @@ void CheckAllocate(
     SCOPED_TRACE(location);
     EXPECT_NE(allocate_filled(size, 'x'), nullptr);
 
-    print_segments("allocated " + std::to_string(location));
+    // print_segments("allocated " + std::to_string(location));
 
     EXPECT_EQ(FreeSegments, expected_free);
     EXPECT_EQ(UsedSegments, expected_used);
 }
 
 TEST_F(MemoryTest, Allocate) {
-    std::vector<Segment> expected_free = { Segment{ 0, BUFFER_SIZE, NO_LINK } };
+    constexpr size_type memory_size = 537;
+    init(memory_size);
+    std::vector<Segment> expected_free = { Segment{ 0, memory_size, NO_LINK } };
     std::vector<Segment> expected_used;
-    size_type location = BUFFER_SIZE;
+    size_type location = memory_size;
     while (FreeSegments.at(0).size > 40) {
         const size_type size = random_value(30, 40);
         location -= size;
@@ -164,8 +180,10 @@ void CheckDeallocate(
 }
 
 TEST_F(MemoryTest, Deallocate) {
+    constexpr size_type memory_size = 357;
+    init(memory_size);
     constexpr size_type NUM_BLOCKS = 10;
-    constexpr size_type size = BUFFER_SIZE / NUM_BLOCKS;
+    constexpr size_type size = memory_size / NUM_BLOCKS;
     size_type allocated = 0;
     while (true) {
         auto ptr = reinterpret_cast<unsigned char*>(allocate_filled(size, 'x'));
@@ -188,7 +206,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 6 and create a new free space there
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | XXX | XXX | XXX | XXX | XXX | XXX | ... | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 6) * size;
+    pos = memory_size - (NUM_BLOCKS - 6) * size;
     expected_free.at(0).link = pos;
     expected_free.emplace_back(pos, size, NO_LINK);
     expected_used.erase(expected_used.begin() + 6);
@@ -197,7 +215,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 5 and coalesce 5-6
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | XXX | XXX | XXX | XXX | XXX | ... - ... | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 5) * size;
+    pos = memory_size - (NUM_BLOCKS - 5) * size;
     expected_free.at(0).link = pos;
     expected_free.at(1).location = pos;
     expected_free.at(1).size += size;
@@ -207,7 +225,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 0 and expand size of first free space
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... | XXX | XXX | XXX | XXX | ... - ... | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 0) * size;
+    pos = memory_size - (NUM_BLOCKS - 0) * size;
     expected_free.at(0).size += size;
     expected_used.erase(expected_used.begin() + 0);
     CheckDeallocate(pos, size, expected_free, expected_used);
@@ -215,7 +233,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 1 and expand size of first free space
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... - ... | XXX | XXX | XXX | ... - ... | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 1) * size;
+    pos = memory_size - (NUM_BLOCKS - 1) * size;
     expected_free.at(0).size += size;
     expected_used.erase(expected_used.begin() + 0);
     CheckDeallocate(pos, size, expected_free, expected_used);
@@ -223,7 +241,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 8 and create a new free space there
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... - ... | XXX | XXX | XXX | ... - ... | XXX | ... | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 8) * size;
+    pos = memory_size - (NUM_BLOCKS - 8) * size;
     expected_free.at(1).link = pos;
     expected_free.emplace_back(pos, size, NO_LINK);
     expected_used.erase(expected_used.begin() + 4);
@@ -232,7 +250,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space starting at 7 and join 5-6-7-8
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... - ... | XXX | XXX | XXX | ... - ... - ... - ... | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 7) * size;
+    pos = memory_size - (NUM_BLOCKS - 7) * size;
     expected_free.at(1).link = expected_free.at(2).link;
     expected_free.at(1).size += size + expected_free.at(2).size;
     expected_free.erase(expected_free.begin() + 2);
@@ -242,7 +260,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space starting at 9 and expand size of free space at 5
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... - ... | XXX | XXX | XXX | ... - ... - ... - ... - ... |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 9) * size;
+    pos = memory_size - (NUM_BLOCKS - 9) * size;
     expected_free.at(1).size += size;
     expected_used.erase(expected_used.begin() + 3);
     CheckDeallocate(pos, size, expected_free, expected_used);
@@ -250,7 +268,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 3 and create a new free space there
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... - ... | XXX | ... | XXX | ... - ... - ... - ... - ... |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 3) * size;
+    pos = memory_size - (NUM_BLOCKS - 3) * size;
     expected_free.at(0).link = pos;
     expected_free.emplace(expected_free.begin() + 1, pos, size, expected_free.at(1).location);
     expected_used.erase(expected_used.begin() + 1);
@@ -259,7 +277,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 2 and coalesce first and second free spaces
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... - ... - ... - ... | XXX | ... - ... - ... - ... - ... |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 2) * size;
+    pos = memory_size - (NUM_BLOCKS - 2) * size;
     expected_free.at(0).link = expected_free.at(1).link;
     expected_free.at(0).size += size + expected_free.at(1).size;
     expected_free.erase(expected_free.begin() + 1);
@@ -269,7 +287,7 @@ TEST_F(MemoryTest, Deallocate) {
     // remove used space at 4 and coalesce first and second free spaces
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | ... - ... - ... - ... - ... - ... - ... - ... - ... - ... |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 4) * size;
+    pos = memory_size - (NUM_BLOCKS - 4) * size;
     expected_free.at(0).link = expected_free.at(1).link;
     expected_free.at(0).size += size + expected_free.at(1).size;
     expected_free.erase(expected_free.begin() + 1);
@@ -281,8 +299,10 @@ TEST_F(MemoryTest, Deallocate) {
 }
 
 TEST_F(MemoryTest, AllocateDeallocate) {
+    constexpr size_type memory_size = 239;
+    init(memory_size);
     constexpr size_type NUM_BLOCKS = 10;
-    constexpr size_type size = BUFFER_SIZE / NUM_BLOCKS;
+    constexpr size_type size = memory_size / NUM_BLOCKS;
     while (true) {
         auto ptr = reinterpret_cast<unsigned char*>(allocate_filled(size, 'x'));
         if (ptr == nullptr) {
@@ -302,7 +322,7 @@ TEST_F(MemoryTest, AllocateDeallocate) {
     // remove used space at 6 and create a new free space there
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | XXX | XXX | XXX | XXX | XXX | XXX | ... | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 6) * size;
+    pos = memory_size - (NUM_BLOCKS - 6) * size;
     expected_free.at(0).link = pos;
     expected_free.emplace_back(pos, size, NO_LINK);
     expected_used.erase(expected_used.begin() + 6);
@@ -311,7 +331,7 @@ TEST_F(MemoryTest, AllocateDeallocate) {
     // remove used space at 5 and coalesce 5-6
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | XXX | XXX | XXX | XXX | XXX | ... - ... | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 5) * size;
+    pos = memory_size - (NUM_BLOCKS - 5) * size;
     expected_free.at(0).link = pos;
     expected_free.at(1).location = pos;
     expected_free.at(1).size += size;
@@ -321,7 +341,7 @@ TEST_F(MemoryTest, AllocateDeallocate) {
     // allocate size that will occupy 6
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | XXX | XXX | XXX | XXX | XXX | ... | XXX | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 6) * size;
+    pos = memory_size - (NUM_BLOCKS - 6) * size;
     expected_free.at(1).size -= size;
     expected_used.emplace(expected_used.begin() + 5, pos, size, NO_LINK);
     CheckAllocate(pos, size, expected_free, expected_used);
@@ -329,7 +349,7 @@ TEST_F(MemoryTest, AllocateDeallocate) {
     // allocate size that will occupy 5 and remove free space
     // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
     // | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX |
-    pos = BUFFER_SIZE - (NUM_BLOCKS - 5) * size;
+    pos = memory_size - (NUM_BLOCKS - 5) * size;
     expected_free.at(0).link = expected_free.at(1).link;
     expected_free.erase(expected_free.begin() + 1);
     expected_used.emplace(expected_used.begin() + 5, pos, size, NO_LINK);

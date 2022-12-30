@@ -1,13 +1,12 @@
 #include "memory.h"
 
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <cstring>
 
 namespace memory {
 
-std::array<std::byte, BUFFER_SIZE> Memory;
+std::vector<std::byte> Memory;
 std::vector<Segment> FreeSegments;
 std::vector<Segment> UsedSegments;
 
@@ -33,13 +32,14 @@ auto find_last_smaller(std::vector<Segment>& segments, size_type location) {
     }
 }
 
-void init() {
-    std::fill(Memory.begin(), Memory.end(), std::byte{ '-' });
-    FreeSegments = std::vector{ Segment{ 0, BUFFER_SIZE, NO_LINK } };
+void init(size_type memory_size) {
+    Memory.resize(memory_size, std::byte{ '-' });
+    FreeSegments = std::vector{ Segment{ 0, memory_size, NO_LINK } };
     UsedSegments.clear();
 }
 
 void deinit() {
+    Memory.clear();
     FreeSegments.clear();
     UsedSegments.clear();
 }
