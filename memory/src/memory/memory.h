@@ -6,7 +6,7 @@
 namespace memory {
 
 using size_type = uint32_t;
-constexpr size_type BUFFER_SIZE = 300;
+constexpr size_type BUFFER_SIZE = 377;
 constexpr size_type NO_LINK = std::numeric_limits<size_type>::max();
 
 struct Segment {
@@ -20,5 +20,6 @@ void deinit();
 
 void* allocate(size_type size);
 void* allocate_filled(size_type size, unsigned char c);
+bool deallocate(const void* ptr);
 
 }  // namespace memory
