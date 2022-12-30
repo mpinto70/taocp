@@ -33,6 +33,27 @@ size_type random_value(size_type min, size_type max) {
     return distrib(gen);
 }
 
+void print_header(const std::string& name) {
+    printf("++++++++++ %s ++++++++++\n", name.c_str());
+}
+
+void print_char(unsigned char c) {
+    if (std::isprint(c)) {
+        printf("%c", c);
+    } else {
+        printf("?");
+    }
+}
+
+void print_memory(const std::string& name) {
+    print_header(name);
+    printf("%8zu [ ", Memory.size());
+    for (const auto byte : Memory) {
+        print_char(std::to_integer<unsigned char>(byte));
+    }
+    printf(" ]\n");
+}
+
 void print_segment(const Segment& segment, char s) {
     printf("%c - %d / %d / ", s, segment.location, segment.size);
     if (segment.link != NO_LINK) {
@@ -44,17 +65,13 @@ void print_segment(const Segment& segment, char s) {
     for (size_type i = 0; i < segment.size; ++i) {
         size_type idx = segment.location + i;
         const auto c = std::to_integer<unsigned char>(Memory[idx]);
-        if (std::isprint(c)) {
-            printf("%c", c);
-        } else {
-            printf("?");
-        }
+        print_char(c);
     }
     printf(" ]\n");
 }
 
 void print_segments(const std::string& name) {
-    printf("++++++++++ %s ++++++++++\n", name.c_str());
+    print_header(name);
     size_type free_idx = 0;
     size_type used_idx = 0;
     while (free_idx < FreeSegments.size() || used_idx < UsedSegments.size()) {
@@ -110,7 +127,7 @@ void CheckAllocate(
     SCOPED_TRACE(location);
     EXPECT_NE(allocate_filled(size, 'x'), nullptr);
 
-    // print_segments("allocated " + std::to_string(location));
+    print_segments("allocated " + std::to_string(location));
 
     EXPECT_EQ(FreeSegments, expected_free);
     EXPECT_EQ(UsedSegments, expected_used);
@@ -261,6 +278,62 @@ TEST_F(MemoryTest, Deallocate) {
 
     EXPECT_EQ(FreeSegments.size(), 1);
     EXPECT_TRUE(UsedSegments.empty());
+}
+
+TEST_F(MemoryTest, AllocateDeallocate) {
+    constexpr size_type NUM_BLOCKS = 10;
+    constexpr size_type size = BUFFER_SIZE / NUM_BLOCKS;
+    while (true) {
+        auto ptr = reinterpret_cast<unsigned char*>(allocate_filled(size, 'x'));
+        if (ptr == nullptr) {
+            break;
+        }
+    }
+
+    // print_segments("filled");
+
+    auto expected_free = FreeSegments;
+    auto expected_used = UsedSegments;
+    size_type pos = 0;
+
+    // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
+    // | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX |
+
+    // remove used space at 6 and create a new free space there
+    // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
+    // | XXX | XXX | XXX | XXX | XXX | XXX | ... | XXX | XXX | XXX |
+    pos = BUFFER_SIZE - (NUM_BLOCKS - 6) * size;
+    expected_free.at(0).link = pos;
+    expected_free.emplace_back(pos, size, NO_LINK);
+    expected_used.erase(expected_used.begin() + 6);
+    CheckDeallocate(pos, size, expected_free, expected_used);
+
+    // remove used space at 5 and coalesce 5-6
+    // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
+    // | XXX | XXX | XXX | XXX | XXX | ... - ... | XXX | XXX | XXX |
+    pos = BUFFER_SIZE - (NUM_BLOCKS - 5) * size;
+    expected_free.at(0).link = pos;
+    expected_free.at(1).location = pos;
+    expected_free.at(1).size += size;
+    expected_used.erase(expected_used.begin() + 5);
+    CheckDeallocate(pos, size, expected_free, expected_used);
+
+    // allocate size that will occupy 6
+    // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
+    // | XXX | XXX | XXX | XXX | XXX | ... | XXX | XXX | XXX | XXX |
+    pos = BUFFER_SIZE - (NUM_BLOCKS - 6) * size;
+    expected_free.at(1).size -= size;
+    expected_used.emplace(expected_used.begin() + 5, pos, size, NO_LINK);
+    CheckAllocate(pos, size, expected_free, expected_used);
+
+    // allocate size that will occupy 5 and remove free space
+    // |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |
+    // | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX | XXX |
+    pos = BUFFER_SIZE - (NUM_BLOCKS - 5) * size;
+    expected_free.at(0).link = expected_free.at(1).link;
+    expected_free.erase(expected_free.begin() + 1);
+    expected_used.emplace(expected_used.begin() + 5, pos, size, NO_LINK);
+    CheckAllocate(pos, size, expected_free, expected_used);
 }
 
 }  // namespace memory
