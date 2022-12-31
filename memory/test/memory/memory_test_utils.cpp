@@ -5,17 +5,17 @@
 #include <random>
 
 namespace memory {
-size_type random_value(size_type min, size_type max) {
+SizeType RandomValue(SizeType min, SizeType max) {
     static std::mt19937 gen((std::random_device())());
     std::uniform_int_distribution<> distrib(min, max);
     return distrib(gen);
 }
 
-void print_header(const std::string& name) {
+void PrintHeader(const std::string& name) {
     std::cout << "++++++++++ " << name << " ++++++++++\n";
 }
 
-void print_char(unsigned char c) {
+void PrintChar(unsigned char c) {
     if (std::isprint(c)) {
         std::cout << c;
     } else {
@@ -23,11 +23,11 @@ void print_char(unsigned char c) {
     }
 }
 
-void print_memory(const MemoryT& memory, const std::string& name) {
-    print_header(name);
+void PrintMemory(const MemoryT& memory, const std::string& name) {
+    PrintHeader(name);
     std::cout << std::setw(8) << memory.size() << " [ ";
     for (const auto byte : memory) {
-        print_char(ToInteger<unsigned char>(byte));
+        PrintChar(ToInteger<unsigned char>(byte));
     }
     std::cout << " ]\n";
 }

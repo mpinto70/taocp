@@ -7,8 +7,8 @@
 
 namespace memory {
 
-using size_type = uint64_t;
-constexpr size_type INVALID_SIZE = std::numeric_limits<size_type>::max();
+using SizeType = uint64_t;
+constexpr SizeType kInvalidSize = std::numeric_limits<SizeType>::max();
 
 using Byte = std::byte;
 using MemoryT = std::vector<Byte>;

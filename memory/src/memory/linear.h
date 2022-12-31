@@ -17,16 +17,16 @@ namespace memory::linear {
 // book, though.
 
 struct Segment {
-    size_type location = 0;
-    size_type size = 0;
+    SizeType location = 0;
+    SizeType size = 0;
 };
 using Segments = std::vector<Segment>;
 
-void init(size_type memory_size);
-void deinit();
+void Init(SizeType memory_size);
+void Deinit();
 
-void* allocate(size_type size);
-void* allocate_filled(size_type size, unsigned char c);
-bool deallocate(const void* ptr);
+void* Allocate(SizeType size);
+void* AllocateFilled(SizeType size, unsigned char c);
+bool Deallocate(const void* ptr);
 
 }  // namespace memory::linear

@@ -9,16 +9,16 @@ MemoryT Memory;
 Segments FreeSegments;
 Segments UsedSegments;
 
-bool before(const Segment& segment, size_type location) {
+bool before(const Segment& segment, SizeType location) {
     return segment.location < location;
 }
 
-auto emplace_segment(Segments& segments, size_type location, size_type size) {
+auto emplace_segment(Segments& segments, SizeType location, SizeType size) {
     const auto pos = std::lower_bound(segments.begin(), segments.end(), location, before);
     return segments.emplace(pos, location, size);
 }
 
-auto find_last_smaller(Segments& segments, size_type location) {
+auto find_last_smaller(Segments& segments, SizeType location) {
     const auto pos = std::lower_bound(segments.begin(), segments.end(), location, before);
     if (pos == segments.begin()) {
         return segments.begin();
@@ -27,23 +27,23 @@ auto find_last_smaller(Segments& segments, size_type location) {
     }
 }
 
-void init(size_type memory_size) {
+void Init(SizeType memory_size) {
     Memory.resize(memory_size, Byte{ '-' });
     FreeSegments = std::vector{ Segment{ 0, memory_size } };
     UsedSegments.clear();
 }
 
-void deinit() {
+void Deinit() {
     Memory.clear();
     FreeSegments.clear();
     UsedSegments.clear();
 }
 
-void* allocate(size_type size) {
-    for (size_type i = 0; i < FreeSegments.size(); ++i) {
+void* Allocate(SizeType size) {
+    for (SizeType i = 0; i < FreeSegments.size(); ++i) {
         auto& segment = FreeSegments[i];
         if (segment.size >= size) {
-            size_type new_location = segment.location + segment.size - size;
+            SizeType new_location = segment.location + segment.size - size;
             emplace_segment(UsedSegments, new_location, size);
             segment.size -= size;
             if (segment.size == 0 && i != 0) {
@@ -64,8 +64,8 @@ void coalesce_if_together(Segments& segments, IT before, IT after) {
     }
 }
 
-bool deallocate(const void* ptr) {
-    const size_type location = reinterpret_cast<const Byte*>(ptr) - &Memory[0];
+bool Deallocate(const void* ptr) {
+    const SizeType location = reinterpret_cast<const Byte*>(ptr) - &Memory[0];
     const auto pos_used =
             std::lower_bound(UsedSegments.begin(), UsedSegments.end(), location, before);
     if (pos_used == UsedSegments.end() || pos_used->location != location) {
@@ -99,8 +99,8 @@ bool deallocate(const void* ptr) {
     return true;
 }
 
-void* allocate_filled(size_type size, unsigned char c) {
-    auto res = reinterpret_cast<unsigned char*>(allocate(size));
+void* AllocateFilled(SizeType size, unsigned char c) {
+    auto res = reinterpret_cast<unsigned char*>(Allocate(size));
     if (res != nullptr) {
         std::fill(res, res + size, c);
     }
