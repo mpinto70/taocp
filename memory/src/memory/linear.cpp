@@ -13,9 +13,9 @@ bool before(const Segment& segment, size_type location) {
     return segment.location < location;
 }
 
-auto emplace_segment(Segments& segments, size_type location, size_type size, size_type link) {
+auto emplace_segment(Segments& segments, size_type location, size_type size) {
     const auto pos = std::lower_bound(segments.begin(), segments.end(), location, before);
-    return segments.emplace(pos, location, size, link);
+    return segments.emplace(pos, location, size);
 }
 
 auto find_last_smaller(Segments& segments, size_type location) {
@@ -29,7 +29,7 @@ auto find_last_smaller(Segments& segments, size_type location) {
 
 void init(size_type memory_size) {
     Memory.resize(memory_size, Byte{ '-' });
-    FreeSegments = std::vector{ Segment{ 0, memory_size, NO_LINK } };
+    FreeSegments = std::vector{ Segment{ 0, memory_size } };
     UsedSegments.clear();
 }
 
@@ -44,10 +44,9 @@ void* allocate(size_type size) {
         auto& segment = FreeSegments[i];
         if (segment.size >= size) {
             size_type new_location = segment.location + segment.size - size;
-            emplace_segment(UsedSegments, new_location, size, NO_LINK);
+            emplace_segment(UsedSegments, new_location, size);
             segment.size -= size;
             if (segment.size == 0 && i != 0) {
-                FreeSegments[i - 1].link = segment.link;
                 FreeSegments.erase(FreeSegments.begin() + i);
             }
             return (&Memory[new_location]);
@@ -61,7 +60,6 @@ template <typename IT>
 void coalesce_if_together(Segments& segments, IT before, IT after) {
     if (before->location + before->size == after->location) {
         before->size += after->size;
-        before->link = after->link;
         segments.erase(after);
     }
 }
@@ -86,7 +84,6 @@ bool deallocate(const void* ptr) {
         && pos_used->location + pos_used->size == free_after->location) {
         free_after->location = pos_used->location;
         free_after->size += pos_used->size;
-        free_before->link = free_after->location;
         coalesce_if_together(FreeSegments, free_before, free_after);
     } else if (free_before->location + free_before->size == pos_used->location) {
         free_before->size += pos_used->size;
@@ -94,10 +91,7 @@ bool deallocate(const void* ptr) {
             coalesce_if_together(FreeSegments, free_before, free_after);
         }
     } else {
-        auto inserted = FreeSegments.insert(free_after, *pos_used);
-
-        inserted->link = free_before->link;
-        free_before->link = inserted->location;
+        FreeSegments.insert(free_after, *pos_used);
     }
 
     UsedSegments.erase(pos_used);
