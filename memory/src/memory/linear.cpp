@@ -1,12 +1,11 @@
 #include "linear.h"
 
 #include <algorithm>
-#include <cstddef>
 #include <cstring>
 
-namespace memory {
+namespace memory::linear {
 
-std::vector<std::byte> Memory;
+MemoryT Memory;
 Segments FreeSegments;
 Segments UsedSegments;
 
@@ -29,7 +28,7 @@ auto find_last_smaller(Segments& segments, size_type location) {
 }
 
 void init(size_type memory_size) {
-    Memory.resize(memory_size, std::byte{ '-' });
+    Memory.resize(memory_size, Byte{ '-' });
     FreeSegments = std::vector{ Segment{ 0, memory_size, NO_LINK } };
     UsedSegments.clear();
 }
@@ -68,7 +67,7 @@ void coalesce_if_together(Segments& segments, IT before, IT after) {
 }
 
 bool deallocate(const void* ptr) {
-    const size_type location = reinterpret_cast<const std::byte*>(ptr) - &Memory[0];
+    const size_type location = reinterpret_cast<const Byte*>(ptr) - &Memory[0];
     const auto pos_used =
             std::lower_bound(UsedSegments.begin(), UsedSegments.end(), location, before);
     if (pos_used == UsedSegments.end() || pos_used->location != location) {
@@ -114,4 +113,4 @@ void* allocate_filled(size_type size, unsigned char c) {
     return res;
 }
 
-}  // namespace memory
+}  // namespace memory::linear

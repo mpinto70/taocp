@@ -1,3 +1,5 @@
+#include "memory_test_utils.h"
+
 #include "memory/linear.h"
 
 #include <gtest/gtest.h>
@@ -8,9 +10,9 @@
 #include <iostream>
 #include <random>
 
-namespace memory {
+namespace memory::linear {
 
-extern std::vector<std::byte> Memory;
+extern MemoryT Memory;
 extern Segments FreeSegments;
 extern Segments UsedSegments;
 
@@ -27,33 +29,6 @@ bool operator==(const Segment& lhs, const Segment& rhs) {
 
 bool operator!=(const Segment& lhs, const Segment& rhs) {
     return !(lhs == rhs);
-}
-
-size_type random_value(size_type min, size_type max) {
-    static std::mt19937 gen((std::random_device())());
-    std::uniform_int_distribution<> distrib(min, max);
-    return distrib(gen);
-}
-
-void print_header(const std::string& name) {
-    std::cout << "++++++++++ " << name << " ++++++++++\n";
-}
-
-void print_char(unsigned char c) {
-    if (std::isprint(c)) {
-        std::cout << c;
-    } else {
-        std::cout << '?';
-    }
-}
-
-void print_memory(const std::string& name) {
-    print_header(name);
-    std::cout << std::setw(8) << Memory.size() << " [ ";
-    for (const auto byte : Memory) {
-        print_char(std::to_integer<unsigned char>(byte));
-    }
-    std::cout << " ]\n";
 }
 
 void print_segment(const Segment& segment, char s) {
@@ -433,7 +408,7 @@ TEST_F(MemoryTest, RandomWork) {
     }
     CheckSegmentsAreCongruent();
 
-    // print_memory("allocated");
+    // print_memory(Memory, "allocated");
     // print_segments("allocated");
 
     for (std::size_t i = 0; i < 2000; ++i) {
@@ -441,7 +416,7 @@ TEST_F(MemoryTest, RandomWork) {
         if (is_allocate) {
             const auto size = random_value(min_size, max_size);
             if (allocate_filled(size, 'x') != nullptr) {
-                // print_memory("allocated " + std::to_string(size));
+                // print_memory(Memory, "allocated " + std::to_string(size));
             }
         } else {
             if (not UsedSegments.empty()) {
@@ -450,8 +425,10 @@ TEST_F(MemoryTest, RandomWork) {
                 std::fill_n(Memory.begin() + segment.location, segment.size, std::byte{ '.' });
                 EXPECT_TRUE(deallocate(&Memory.at(segment.location)));
                 // print_memory(
+                //         Memory,
                 //         "deallocated " + std::to_string(idx) + " - "
-                //         + std::to_string(segment.location) + " - " + std::to_string(segment.size));
+                //                 + std::to_string(segment.location) + " - "
+                //                 + std::to_string(segment.size));
             }
         }
         CheckSegmentsAreCongruent();
@@ -460,4 +437,4 @@ TEST_F(MemoryTest, RandomWork) {
     // print_segments("random");
 }
 
-}  // namespace memory
+}  // namespace memory::linear
