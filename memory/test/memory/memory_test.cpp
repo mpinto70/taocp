@@ -444,7 +444,7 @@ TEST_F(MemoryTest, RandomWork) {
                 const auto idx = random_value(1, UsedSegments.size()) - 1;
                 const auto segment = UsedSegments.at(idx);
                 std::fill_n(Memory.begin() + segment.location, segment.size, std::byte{ '.' });
-                deallocate(&Memory.at(segment.location));
+                EXPECT_TRUE(deallocate(&Memory.at(segment.location)));
                 // print_memory(
                 //         "deallocated " + std::to_string(idx) + " - "
                 //         + std::to_string(segment.location) + " - " + std::to_string(segment.size));

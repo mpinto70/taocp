@@ -14,8 +14,8 @@ struct Segment {
     size_type size = 0;
     size_type link = NO_LINK;
 };
-
 using Segments = std::vector<Segment>;
+
 void init(size_type memory_size);
 void deinit();
 
