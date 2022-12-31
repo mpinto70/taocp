@@ -1,5 +1,3 @@
-#include <memory/memory.h>
-
 #include <iostream>
 
 int main() {
