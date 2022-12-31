@@ -6,7 +6,7 @@
 
 namespace memory {
 
-using size_type = uint32_t;
+using size_type = uint64_t;
 constexpr size_type NO_LINK = std::numeric_limits<size_type>::max();
 
 struct Segment {

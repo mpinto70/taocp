@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include <cctype>
+#include <iomanip>
+#include <iostream>
 #include <random>
 
 namespace memory {
@@ -34,40 +36,42 @@ size_type random_value(size_type min, size_type max) {
 }
 
 void print_header(const std::string& name) {
-    printf("++++++++++ %s ++++++++++\n", name.c_str());
+    std::cout << "++++++++++ " << name << " ++++++++++\n";
 }
 
 void print_char(unsigned char c) {
     if (std::isprint(c)) {
-        printf("%c", c);
+        std::cout << c;
     } else {
-        printf("?");
+        std::cout << '?';
     }
 }
 
 void print_memory(const std::string& name) {
     print_header(name);
-    printf("%8zu [ ", Memory.size());
+    std::cout << std::setw(8) << Memory.size() << " [ ";
     for (const auto byte : Memory) {
         print_char(std::to_integer<unsigned char>(byte));
     }
-    printf(" ]\n");
+    std::cout << " ]\n";
 }
 
 void print_segment(const Segment& segment, char s) {
-    printf("%c - %4d / %4d / ", s, segment.location, segment.size);
+    std::cout << s << " - ";
+    std::cout << std::setw(4) << segment.location << " / ";
+    std::cout << std::setw(4) << segment.size << " / ";
     if (segment.link != NO_LINK) {
-        printf("%4d", segment.link);
+        std::cout << std::setw(4) << segment.link;
     } else {
-        printf(" ---");
+        std::cout << " ---";
     }
-    printf(" [ ");
+    std::cout << " [ ";
     for (size_type i = 0; i < segment.size; ++i) {
         size_type idx = segment.location + i;
         const auto c = std::to_integer<unsigned char>(Memory[idx]);
         print_char(c);
     }
-    printf(" ]\n");
+    std::cout << " ]\n";
 }
 
 void print_segments(const std::string& name) {
@@ -101,7 +105,7 @@ void print_segments(const std::string& name, const Segments& segments) {
     print_header(name);
     for (std::size_t i = 0; i < segments.size(); ++i) {
         const auto& segment = segments.at(i);
-        printf("%3zu - ", i);
+        std::cout << std::setw(3) << i << " - ";
         print_segment(segment, 'X');
     }
 }
