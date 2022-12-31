@@ -1,5 +1,5 @@
 set(memory_srcs
-    memory_test.cpp
+    linear_test.cpp
 )
 
 set(memory_libs
